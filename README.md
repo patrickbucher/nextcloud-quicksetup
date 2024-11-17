@@ -1,6 +1,8 @@
 # Nextcloud-Installation
 
-Ausgangslage: Debian 12 "Bookworm" (Standardinstallation)
+Ausgangslage: Debian 12 "Bookworm" (Standardinstallation) auf Exoscale gehosted
+(IP-Adresse: 185.19.29.145) mit einem Benutzer namens `user`, der über
+`sudo`-Rechte verfügt.
 
 ## Apache
 
@@ -12,7 +14,7 @@ Den Apache-Webserver installieren:
 
     $ systemctl is-active apache2
 
-Zum Testen auf [http://localhost](http://localhost) zugreifen.
+Zum Testen auf [http://185.19.29.145](http://185.19.29.145) zugreifen.
 
 ## PHP
 
@@ -39,7 +41,7 @@ Eine neue Testseite einrichten (`/etc/apache2/sites-available/demo.conf`):
 
     <VirtualHost *:80>
         DocumentRoot /var/www/demo
-        ServerName localhost
+        ServerName 185.19.29.145
     </VirtualHost>
 
 Die PHP-Infoseite aktivieren:
@@ -50,7 +52,7 @@ Die Serverkonfiguration neu laden:
 
     $ sudo systemctl reload apache2.service
 
-Zum Testen auf [http://localhost](http://localhost) zugreifen (Server API: Apache 2.0 Handler).
+Zum Testen auf [http://185.19.29.145](http://185.19.29.145) zugreifen (Server API: Apache 2.0 Handler).
 
 ## PHP-FPM
 
@@ -69,9 +71,9 @@ Das Apache-Modul `proxy_fcgi` mit der dazugehörigen Konfiguration aktivieren:
 
 Apache neu starten:
 
-    $ sudo systemctl restart apache.service
+    $ sudo systemctl restart apache2.service
 
-Zum Testen auf [http://localhost](http://localhost) zugreifen (Server API: FPM/FastCGI).
+Zum Testen auf [http://185.19.29.145](http://185.19.29.145) zugreifen (Server API: FPM/FastCGI).
 
 Memory-Zuordnung für PHP-Skripte erhöhen (`/etc/php/8.2/fpm/php.ini`):
 
@@ -81,7 +83,7 @@ PHP-FPM neu starten:
 
     $ sudo systemctl restart php8.2-fpm.service
 
-Zum Testen auf [http://localhost](http://localhost) zugreifen (Memory-Limite: 256M).
+Zum Testen auf [http://185.19.29.145](http://185.19.29.145) zugreifen (Memory-Limite: 256M).
 
 Infoseite deaktivieren:
 
@@ -122,7 +124,7 @@ Apache-Konfiguration erstellen (`/etc/apache2/sites-available/nextcloud.conf`):
 
     <VirtualHost *:80>
         DocumentRoot /var/www/nextcloud
-        ServerName localhost
+        ServerName 185.19.29.145
         <Directory /var/www/nextcloud>
             Require all granted
             AllowOverride All
@@ -135,8 +137,10 @@ Apache-Konfiguration erstellen (`/etc/apache2/sites-available/nextcloud.conf`):
 
 Nextcloud herunterladen:
 
+Per Browser:
+
 - [nextcloud.com](https://nextcloud.com)
-- Get Nextcloud
+- Download
 - Nextcloud server
 - Community Projects
 - Archive
@@ -145,15 +149,21 @@ Nextcloud herunterladen:
     3. PGP Signature: für `.tar.bz2`
     4. PGP Key: `.asc`
 
+Per Kommandozeile:
+
+    $ wget https://download.nextcloud.com/server/releases/latest.tar.bz2
+    $ wget https://download.nextcloud.com/server/releases/latest.tar.bz2.sha256
+    $ wget https://download.nextcloud.com/server/releases/latest.tar.bz2.asc
+
 Integrität prüfen:
 
-    $ cd Downloads/
     $ sha256sum -c latest.tar.bz2.sha256
     OK
 
 Schlüssel importieren:
 
-    $ gpg --import nextcloud.asc
+    $ sudo apt install -y gpg
+    $ gpg --keyserver keys.openpgp.org --recv-keys 28806A878AE423A28372792ED75899B9A724937A
 
 Signatur prüfen:
 
@@ -161,7 +171,8 @@ Signatur prüfen:
 
 Nextcloud-Archiv nach `/var/www` entpacken:
 
-    $ sudo tar xf latest.tar.bzw -C /var/www
+    $ sudo apt install -y lbzip2
+    $ sudo tar xf latest.tar.bz2 -C /var/www
 
 Verzeichnis berechtigen:
 
@@ -175,7 +186,7 @@ Apache-Konfiguration neu laden:
 
     $ sudo systemctl reload apache2.service
 
-Nextcloud-Seite unter [http://localhost](http://localhost) laden (Fehlermeldungen).
+Nextcloud-Seite unter [http://185.19.29.145](http://185.19.29.145) laden (Fehlermeldungen).
 
 Fehlermeldungen beheben:
 
